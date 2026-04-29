@@ -13,6 +13,7 @@ const ImageCanvas = forwardRef(function ImageCanvas(
   {
     displayImage,
     isGenerating,
+    generatingMsg = 'Generating…',
     error,
     watermark,
     showWatermark,
@@ -190,7 +191,7 @@ const ImageCanvas = forwardRef(function ImageCanvas(
                   />
                 ))}
               </div>
-              <p className="text-sm text-white/40">Generating with Gemini…</p>
+              <p className="text-sm text-white/40">{generatingMsg}</p>
             </div>
           </motion.div>
         ) : !displayImage ? (

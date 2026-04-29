@@ -6,7 +6,7 @@ export async function generateImage(apiKey, prompt, inputImage = null) {
 
   const genAI = new GoogleGenerativeAI(apiKey.trim());
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-preview-image-generation',
+    model: 'gemini-2.0-flash-exp-image-generation',
   });
 
   const parts = [{ text: prompt }];
