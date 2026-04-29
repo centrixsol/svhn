@@ -76,13 +76,12 @@ export default function App() {
       : prompt;
 
     try {
-      const result = await generateImage(token, fullPrompt);
+      const result = await generateImage(token, fullPrompt, model);
       setDisplayImage(result);
       setIsGenerating(false);
     } catch (err) {
       if (err.type === 'MODEL_LOADING') {
-        // Auto-retry after warmup delay
-        const waitSec = err.waitSec ?? 20;
+        const waitSec = err.waitSec ?? 25;
         setGeneratingMsg(`Model warming up — retrying in ${waitSec}s…`);
         retryTimer.current = setTimeout(() => {
           handleGenerate(prompt, inputImage, model, true);
@@ -96,7 +95,17 @@ export default function App() {
       } else if (err.type === 'NO_TOKEN') {
         setError('Enter your free Hugging Face token in the top bar to start generating.');
       } else if (err.type === 'AUTH') {
-        setError('Invalid token. Check your Hugging Face API token and try again.');
+        setError('Invalid token. Please check your Hugging Face API token.');
+      } else if (err.type === 'ACCESS_DENIED' || err.type === 'CORS_OR_NETWORK') {
+        if (err.gated) {
+          setError(
+            `Access denied — this model requires accepting its license. ` +
+            `Visit huggingface.co/${err.hfModel} → click "Agree and access", then retry. ` +
+            `Or switch to SDXL or SD 1.5 which have no gate.`
+          );
+        } else {
+          setError('Request blocked. Check your Hugging Face token has Read access, then try again.');
+        }
       } else {
         setError(err.message ?? 'Generation failed. Please try again.');
       }

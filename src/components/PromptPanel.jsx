@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { Wand2, X, ImageIcon, Loader2, History } from 'lucide-react';
+import { Wand2, X, ImageIcon, Loader2, History, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MODELS } from '../utils/huggingface';
 
 const MAX_CHARS = 1000;
 
@@ -11,6 +12,7 @@ export default function PromptPanel({
   const [prompt, setPrompt] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [history, setHistory] = useState([]);
+  const [modelId, setModelId] = useState('sdxl');
   const fileRef = useRef(null);
 
   const handleGenerate = () => {
@@ -18,7 +20,7 @@ export default function PromptPanel({
     if (!history.includes(prompt.trim())) {
       setHistory((h) => [prompt.trim(), ...h].slice(0, 8));
     }
-    onGenerate(prompt.trim(), uploadedImage);
+    onGenerate(prompt.trim(), uploadedImage, modelId);
   };
 
   const handleFile = (file) => {
@@ -96,12 +98,47 @@ export default function PromptPanel({
             onChange={(e) => handleFile(e.target.files[0])} />
         </div>
 
-        {/* Model badge */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.15)' }}>
-          <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-          <span className="text-xs text-violet-300/70 font-medium">FLUX.1-schnell</span>
-          <span className="text-[10px] text-white/25 ml-auto">via Hugging Face</span>
+        {/* Model selector */}
+        <div>
+          <p className="text-[11px] text-white/30 font-medium mb-2 uppercase tracking-wider">Model</p>
+          <div className="flex flex-col gap-1.5">
+            {MODELS.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setModelId(m.id)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                  modelId === m.id
+                    ? 'bg-violet-500/20 ring-1 ring-violet-500/40'
+                    : 'bg-white/[0.03] hover:bg-white/[0.06]'
+                }`}>
+                <div className={`w-2 h-2 rounded-full shrink-0 ${modelId === m.id ? 'bg-violet-400' : 'bg-white/20'}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-xs font-semibold ${modelId === m.id ? 'text-violet-300' : 'text-white/50'}`}>
+                      {m.name}
+                    </span>
+                    {m.gated && (
+                      <span className="flex items-center gap-0.5 text-[9px] text-amber-400/70 px-1 py-0.5 rounded"
+                        style={{ background: 'rgba(251,191,36,0.08)' }}>
+                        <Lock size={8} /> License required
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-white/25">{m.label}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          {MODELS.find((m) => m.id === modelId)?.gated && (
+            <p className="text-[10px] text-amber-400/60 mt-2 leading-relaxed px-1">
+              Accept license at{' '}
+              <a href={`https://huggingface.co/${MODELS.find((m) => m.id === modelId)?.hfModel}`}
+                target="_blank" rel="noreferrer" className="underline hover:text-amber-400">
+                huggingface.co
+              </a>{' '}
+              before using this model.
+            </p>
+          )}
         </div>
 
         {/* Generate button */}
